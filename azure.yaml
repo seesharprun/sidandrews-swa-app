@@ -12,3 +12,12 @@ services:
     language: csharp
     host: staticwebapp
     dist: wwwroot
+    hooks:
+      predeploy:
+        posix:
+          shell: sh
+          run: dotnet publish -c Release --output .
+        windows:
+          shell: pwsh
+          run: dotnet publish -c Release --output .
+          
