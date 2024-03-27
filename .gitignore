@@ -1,6 +1,7 @@
 # Azure Developer CLI
 .azure
 build/
+src/web/wwwroot
 
 # dotenv files
 .env
