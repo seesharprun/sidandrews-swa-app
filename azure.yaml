@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: dab-azure-sql-quickstart
+services:
+  web:
+    project: ./src/web
+    language: csharp
+    host: staticwebapp
+    dist: wwwroot

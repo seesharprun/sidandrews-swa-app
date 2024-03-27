@@ -1,0 +1,6 @@
+{
+  "staticWebApps": "swa",
+  "functionApps": "func",
+  "sqlServers": "srvr",
+  "sqlDatabases": "db"
+}
