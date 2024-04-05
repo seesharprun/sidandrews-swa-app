@@ -2,6 +2,7 @@
 .azure
 build/
 src/web/wwwroot
+*-app.zip
 
 # dotenv files
 .env

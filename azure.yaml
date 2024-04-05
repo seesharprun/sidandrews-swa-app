@@ -11,13 +11,14 @@ services:
     project: ./src/web
     language: csharp
     host: staticwebapp
-    dist: wwwroot
+    dist: build/wwwroot
     hooks:
       predeploy:
         posix:
           shell: sh
-          run: dotnet publish -c Release --output .
+          run: dotnet publish -c Release --output ./build
         windows:
           shell: pwsh
-          run: dotnet publish -c Release --output .
-          
+          run: dotnet publish -c Release --output ./build
+pipeline:
+  provider: github
