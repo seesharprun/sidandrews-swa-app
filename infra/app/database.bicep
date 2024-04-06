@@ -32,7 +32,7 @@ module firewallRules '../core/database/sql/firewall-rules.bicep' = {
   name: 'sql-firewall-rules'
   params: {
     name: 'AllowAllAzureInternal'
-    parentServerName: serverName
+    parentServerName: server.outputs.name
     startIpAddress: '0.0.0.0' // "0.0.0.0" for all Azure-internal IP addresses.
     endIpAddress: '0.0.0.0' // "0.0.0.0" for all Azure-internal IP addresses.
   }
@@ -42,7 +42,7 @@ module database '../core/database/sql/database.bicep' = {
   name: 'sql-database'
   params: {
     name: databaseName
-    parentServerName: serverName
+    parentServerName: server.outputs.name
     location: location
     tags: tags
     deploySample: true

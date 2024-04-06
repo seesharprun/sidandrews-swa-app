@@ -21,6 +21,10 @@ type managedIdentity = {
 @description('Unique identifier for user-assigned managed identity.')
 param userAssignedManagedIdentity managedIdentity
 
+resource storageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' existing = {
+  name: storageAccountName
+}
+
 module plan '../core/host/app-service/plan.bicep' = {
   name: 'function-app-plan'
   params: {
@@ -45,10 +49,6 @@ module systemAssignedManagedIdentityAssignment '../core/security/role/assignment
   }
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2021-06-01' existing = {
-  name: storageAccountName
-}
-
 module func '../core/host/app-service/site.bicep' = {
   name: 'function-app-site'
   params: {
@@ -64,12 +64,18 @@ module func '../core/host/app-service/site.bicep' = {
     userAssignedManagedIdentityIds: [
       userAssignedManagedIdentity.resourceId
     ]
-    alwaysOn: false
+    alwaysOn: true
     parentPlanName: plan.outputs.name
     allowedCorsOrigins: allowedCorsOrigins
     kind: 'functionapp,linux'
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '8.0'
+    initialAppSettings: [
+      {
+        name: 'AzureWebJobsStorage__accountName'
+        value: storageAccount.name
+      }
+    ]
   }
 }
 
@@ -78,7 +84,6 @@ module config '../core/host/app-service/config-appsettings.bicep' = {
   params: {
     parentSiteName: func.outputs.name
     appSettings: {
-      AzureWebJobsStorage__accountName: storageAccount.name
       SCM_DO_BUILD_DURING_DEPLOYMENT: false
       ENABLE_ORYX_BUILD: true
       FUNCTIONS_EXTENSION_VERSION: '~4'

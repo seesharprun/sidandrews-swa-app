@@ -38,6 +38,14 @@ param enableSystemAssignedManagedIdentity bool = false
 @description('List of user-assigned managed identities. Defaults to an empty list.')
 param userAssignedManagedIdentityIds string[] = []
 
+type setting = {
+  name: string
+  value: string
+}
+
+@description('Initial app settings for the site. Defaults to an empty list.')
+param initialAppSettings setting[] = []
+
 var linuxFxVersion = '${runtimeName}|${runtimeVersion}'
 
 resource plan 'Microsoft.Web/serverfarms@2022-09-01' existing = {
@@ -50,8 +58,12 @@ resource site 'Microsoft.Web/sites@2022-09-01' = {
   tags: tags
   kind: kind
   identity: {
-    type: enableSystemAssignedManagedIdentity ? !empty(userAssignedManagedIdentityIds) ? 'SystemAssigned, UserAssigned' : 'SystemAssigned' : !empty(userAssignedManagedIdentityIds) ? 'UserAssigned' : 'None'
-    userAssignedIdentities: !empty(userAssignedManagedIdentityIds) ? toObject(userAssignedManagedIdentityIds, uaid => uaid, uaid => {}) : null
+    type: enableSystemAssignedManagedIdentity
+      ? !empty(userAssignedManagedIdentityIds) ? 'SystemAssigned, UserAssigned' : 'SystemAssigned'
+      : !empty(userAssignedManagedIdentityIds) ? 'UserAssigned' : 'None'
+    userAssignedIdentities: !empty(userAssignedManagedIdentityIds)
+      ? toObject(userAssignedManagedIdentityIds, uaid => uaid, uaid => {})
+      : null
   }
   properties: {
     serverFarmId: plan.id
@@ -60,8 +72,9 @@ resource site 'Microsoft.Web/sites@2022-09-01' = {
       alwaysOn: alwaysOn
       minTlsVersion: '1.2'
       cors: {
-        allowedOrigins: union([ 'https://portal.azure.com', 'https://ms.portal.azure.com' ], allowedCorsOrigins)
+        allowedOrigins: union(['https://portal.azure.com', 'https://ms.portal.azure.com'], allowedCorsOrigins)
       }
+      appSettings: initialAppSettings
     }
     httpsOnly: true
   }
