@@ -41,6 +41,23 @@ param httpsOnly bool = true
 @description('Configures the storage account to allow public access to blobs. Defaults to false.')
 param publicBlobAccess bool = false
 
+@description('Configures the storage account to allow shared key access. Defaults to true.')
+param allowSharedKeyAccess bool = true
+
+@allowed([
+  'TLS1_0'
+  'TLS1_1'
+  'TLS1_2'
+])
+@description('Sets the minimum TLS version required for the storage account. Defaults to "TLS1_2".')
+param minimumTlsVersion string = 'TLS1_2'
+
+@description('Configures whether the storage account should default to Microsoft Entra authentication. Defaults to false.')
+param defaultToEntraAuthentication bool = false
+
+@description('Configures whether the storage account should allow public network access. Defaults to true.')
+param allowPublicNetworkAccess bool = true
+
 resource account 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: name
   location: location
@@ -53,6 +70,10 @@ resource account 'Microsoft.Storage/storageAccounts@2022-09-01' = {
     accessTier: accessTier
     allowBlobPublicAccess: publicBlobAccess
     supportsHttpsTrafficOnly: httpsOnly
+    allowSharedKeyAccess: allowSharedKeyAccess
+    minimumTlsVersion: minimumTlsVersion
+    defaultToOAuthAuthentication: defaultToEntraAuthentication
+    publicNetworkAccess: allowPublicNetworkAccess ? 'Enabled' : 'Disabled'
   }
 }
 

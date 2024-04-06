@@ -35,6 +35,9 @@ param allowedCorsOrigins string[] = []
 @description('Enable system-assigned managed identity. Defaults to false.')
 param enableSystemAssignedManagedIdentity bool = false
 
+@description('List of user-assigned managed identities. Defaults to an empty list.')
+param userAssignedManagedIdentityIds string[] = []
+
 var linuxFxVersion = '${runtimeName}|${runtimeVersion}'
 
 resource plan 'Microsoft.Web/serverfarms@2022-09-01' existing = {
@@ -46,9 +49,10 @@ resource site 'Microsoft.Web/sites@2022-09-01' = {
   location: location
   tags: tags
   kind: kind
-  identity: enableSystemAssignedManagedIdentity ? {
-    type: 'SystemAssigned'
-  } : null
+  identity: {
+    type: enableSystemAssignedManagedIdentity ? !empty(userAssignedManagedIdentityIds) ? 'SystemAssigned, UserAssigned' : 'SystemAssigned' : !empty(userAssignedManagedIdentityIds) ? 'UserAssigned' : 'None'
+    userAssignedIdentities: !empty(userAssignedManagedIdentityIds) ? toObject(userAssignedManagedIdentityIds, uaid => uaid, uaid => {}) : null
+  }
   properties: {
     serverFarmId: plan.id
     siteConfig: {
@@ -66,3 +70,4 @@ resource site 'Microsoft.Web/sites@2022-09-01' = {
 output endpoint string = 'https://${site.properties.defaultHostName}'
 output name string = site.name
 output managedIdentityPrincipalId string = enableSystemAssignedManagedIdentity ? site.identity.principalId : ''
+output managedIdentityTenantId string = enableSystemAssignedManagedIdentity ? site.identity.tenantId : ''
