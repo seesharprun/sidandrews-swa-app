@@ -12,7 +12,6 @@ param location string
 // Optional parameters
 param userAssignedIdentityName string = ''
 param sqlServerName string = ''
-param sqlDatabaseName string = ''
 param functionPlanName string = ''
 param functionStorName string = ''
 param functionAppName string = ''
@@ -95,7 +94,7 @@ module database 'app/database.bicep' = {
   scope: resourceGroup
   params: {
     serverName: !empty(sqlServerName) ? sqlServerName : '${abbreviations.sqlServers}-${resourceToken}'
-    databaseName: !empty(sqlDatabaseName) ? sqlDatabaseName : '${abbreviations.sqlDatabases}-${resourceToken}'
+    databaseName: 'adventureworkslt'
     location: location
     tags: tags
     databaseAdministrator: {
