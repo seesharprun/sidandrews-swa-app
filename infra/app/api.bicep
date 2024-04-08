@@ -37,18 +37,6 @@ module plan '../core/host/app-service/plan.bicep' = {
   }
 }
 
-module systemAssignedManagedIdentityAssignment '../core/security/role/assignment.bicep' = {
-  name: 'storage-role-assignment-blob-data-owner'
-  params: {
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Blob Data Owner built-in role
-    )
-    principalId: func.outputs.managedIdentityPrincipalId // Principal to assign role
-    principalType: 'ServicePrincipal' // Application user
-  }
-}
-
 module func '../core/host/app-service/site.bicep' = {
   name: 'function-app-site'
   params: {
@@ -60,7 +48,6 @@ module func '../core/host/app-service/site.bicep' = {
         'azd-service-name': serviceTag
       }
     )
-    enableSystemAssignedManagedIdentity: true
     userAssignedManagedIdentityIds: [
       userAssignedManagedIdentity.resourceId
     ]
@@ -70,12 +57,6 @@ module func '../core/host/app-service/site.bicep' = {
     kind: 'functionapp,linux'
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '8.0'
-    initialAppSettings: [
-      {
-        name: 'AzureWebJobsStorage__accountName'
-        value: storageAccount.name
-      }
-    ]
   }
 }
 
@@ -84,6 +65,9 @@ module config '../core/host/app-service/config-appsettings.bicep' = {
   params: {
     parentSiteName: func.outputs.name
     appSettings: {
+      AzureWebJobsStorage__accountName: storageAccount.name
+      AzureWebJobsStorage__credential: 'managedidentity'
+      AzureWebJobsStorage__clientId: userAssignedManagedIdentity.clientId
       SCM_DO_BUILD_DURING_DEPLOYMENT: false
       ENABLE_ORYX_BUILD: true
       FUNCTIONS_EXTENSION_VERSION: '~4'
@@ -94,5 +78,3 @@ module config '../core/host/app-service/config-appsettings.bicep' = {
 
 output name string = func.outputs.name
 output endpoint string = func.outputs.endpoint
-output managedIdentityPrincipalId string = func.outputs.managedIdentityPrincipalId
-output managedIdentityTenantId string = func.outputs.managedIdentityTenantId

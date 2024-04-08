@@ -48,22 +48,6 @@ module identity 'app/identity.bicep' = {
   }
 }
 
-module database 'app/database.bicep' = {
-  name: 'database'
-  scope: resourceGroup
-  params: {
-    serverName: !empty(sqlServerName) ? sqlServerName : '${abbreviations.sqlServers}-${resourceToken}'
-    databaseName: !empty(sqlDatabaseName) ? sqlDatabaseName : '${abbreviations.sqlDatabases}-${resourceToken}'
-    location: location
-    tags: tags
-    databaseAdministrator: {
-      name: api.outputs.name
-      clientId: api.outputs.managedIdentityPrincipalId
-      tenantId: api.outputs.managedIdentityTenantId
-    }
-  }
-}
-
 module storage 'app/storage.bicep' = {
   name: 'storage'
   scope: resourceGroup
@@ -71,6 +55,7 @@ module storage 'app/storage.bicep' = {
     storName: !empty(functionStorName) ? functionStorName : '${abbreviations.storageAccounts}${resourceToken}'
     location: location
     tags: tags
+    managedIdentityClientId: identity.outputs.clientId
   }
 }
 
@@ -105,13 +90,19 @@ module api 'app/api.bicep' = {
   }
 }
 
-module connection 'app/connection.bicep' = {
-  name: 'connection'
+module database 'app/database.bicep' = {
+  name: 'database'
   scope: resourceGroup
   params: {
-    parentFunctionAppName: api.outputs.name
-    sqlServerEndpoint: database.outputs.serverEndpoint
-    sqlDatabaseName: database.outputs.databaseName
+    serverName: !empty(sqlServerName) ? sqlServerName : '${abbreviations.sqlServers}-${resourceToken}'
+    databaseName: !empty(sqlDatabaseName) ? sqlDatabaseName : '${abbreviations.sqlDatabases}-${resourceToken}'
+    location: location
+    tags: tags
+    databaseAdministrator: {
+      name: identity.outputs.name
+      clientId: identity.outputs.clientId
+      tenantId: identity.outputs.tenantId
+    }
   }
 }
 
